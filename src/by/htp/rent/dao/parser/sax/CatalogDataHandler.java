@@ -1,5 +1,6 @@
 package by.htp.rent.dao.parser.sax;
 
+import static by.htp.rent.dao.parser.DataTypeTransformUtil.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import by.htp.rent.dao.domain.Equipment;
+import by.htp.rent.dao.parser.CatalogTagName;
 
 public class CatalogDataHandler extends DefaultHandler {
 
@@ -20,25 +22,21 @@ public class CatalogDataHandler extends DefaultHandler {
 	private Equipment equipment;
 	private List<Equipment> equipments = new ArrayList<>();
 
-	@Override
-	public void startDocument() throws SAXException {
-		System.out.println("startDocument");
-	}
-
-	@Override
-	public void endDocument() throws SAXException {
-		System.out.println("endDocument");
-	}
-
+	private static final char UNDERSCORE = '_';
+	private static final char DASH = '-';
+	private static final String ID = "id";
+	
+	
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-		System.out.println("startElement=" + localName);
-
-		switch (localName) {
-		case "equipment":
+		
+		CatalogTagName tag = getTag(localName);
+		
+		switch (tag) {
+		case EQUIPMENT:
 			
 			equipment = new Equipment();
-			String idString = attributes.getValue("id");
+			String idString = attributes.getValue(ID);
 			int id = Integer.parseInt(idString);
 			equipment.setId(id);
 			break;
@@ -49,31 +47,24 @@ public class CatalogDataHandler extends DefaultHandler {
 
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
-		System.out.println("endElement=" + localName);
-
-		switch (localName) {
-		case "equipment":
+		
+		CatalogTagName tag = getTag(localName);
+		
+		switch (tag) {
+		case EQUIPMENT:
 
 			equipments.add(equipment);
 			break;
-		case "title":
+		case TITLE:
 			equipment.setTitle(text.toString().trim());
 			break;
-		case "price":
-			double price = Double.parseDouble(text.toString().trim());
-			equipment.setPrice(price);
+		case PRICE:
+			String price = text.toString().trim();
+			equipment.setPrice(convertPrice(price));
 			break;
-		case "date":
-			
-			try {
-				String dateString = text.toString().trim();
-				SimpleDateFormat format = new SimpleDateFormat("dd-MM-YYYY");
-				Date date = format.parse(dateString);
-				equipment.setDate(date);
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-
+		case DATE:
+			String date = text.toString().trim();
+			equipment.setDate(convertDate(date));
 			break;
 		}
 	}
@@ -81,11 +72,18 @@ public class CatalogDataHandler extends DefaultHandler {
 	@Override
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		text.append(ch, start, length);
-		System.out.println("characters: " + text);
 	}
 
 	public List<Equipment> getEquipments() {
 		return equipments;
 	}
+	
+	private CatalogTagName getTag(String localName) {
+		String tag = localName.toUpperCase().replace(DASH, UNDERSCORE);
+		CatalogTagName tagElement = CatalogTagName.valueOf(tag);
+		return tagElement;
+	}
+	
+	
 
 }

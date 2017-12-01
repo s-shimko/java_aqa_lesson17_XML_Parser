@@ -15,7 +15,6 @@ public class Equipment implements Serializable {
 
 	public Equipment() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public Equipment(int id, String title, double price, Date date) {
@@ -60,7 +59,7 @@ public class Equipment implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Equipment [id=" + id + ", title=" + title + ", price=" + price + "]";
+		return "Equipment [id=" + id + ", title=" + title + ", price=" + price + ", date=" + date + "]";
 	}
 
 	@Override
